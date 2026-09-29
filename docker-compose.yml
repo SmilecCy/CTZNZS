@@ -1,0 +1,250 @@
+# ============================================================
+# 文件：docker-compose.yml
+# 用途：一键启动 MySQL + Redis 容器
+#
+# 【这个文件在干什么】
+#   它告诉 Docker：帮我启动两个服务，一个 MySQL，一个 Redis。
+#   每个服务的端口、密码、数据存哪，都在这里定义。
+#
+# 【为什么不直接在本机装 MySQL 和 Redis】
+#   1. 不用操心版本冲突（本机可能已经装了别的版本）
+#   2. 不用操心配置（Docker 镜像的默认配置已经能用）
+#   3. 删了重来很方便（一行命令搞定，不留垃圾）
+#   4. 换电脑时，只要有 Docker，环境一模一样
+#
+# 【常用命令】
+#   docker compose up -d         启动（-d 表示后台运行，不占终端）
+#   docker compose ps            看状态（重点看 STATUS 是不是 healthy）
+#   docker compose logs -f       看日志（-f 表示持续输出，Ctrl+C 退出）
+#   docker compose logs mysql    只看 MySQL 的日志
+#   docker compose stop          停止（数据保留）
+#   docker compose start         启动已停止的容器
+#   docker compose down          停止并删除容器（数据保留在数据卷里）
+#   docker compose down -v       停止并删除容器 + 数据卷（数据全没，慎用！）
+#
+# 【端口约定】
+#   宿主机 9999 → 容器 MySQL 3306
+#   宿主机 9991 → 容器 Redis 6379
+#
+#   为什么用这么奇怪的端口：
+#     你本机已经装了 MySQL，占用了默认的 3306。
+#     为了不冲突，Docker 里的 MySQL 映射到宿主机的 9999。
+#
+#   改端口的规则：
+#     改 docker-compose.yml 里 ports 的左边数字，
+#     同时改 .env 里的 MYSQL_PORT / REDIS_PORT。
+#     两处必须一致，否则连不上。
+# ============================================================
+
+# Docker Compose 的"项目名"。
+# 为什么必须有这一行：
+#   Docker 默认拿当前目录名当项目名。你的项目目录叫
+#   "司法辅助项目"（含中文），Docker 不接受中文，会报
+#   "project name must not be empty" 错误。
+#   加这行显式指定，问题消失。
+# 命名规则：只能用小写字母、数字、短横线、下划线，且小写字母开头。
+name: study-system
+
+
+# ============================================================
+# services：定义要启动的服务
+# 每个服务就是一个容器。
+# ============================================================
+services:
+
+  # ==========================================================
+  # 服务 1：MySQL（持久存储）
+  # ==========================================================
+  mysql:
+
+    # 用哪个 Docker 镜像。
+    # mysql:8.0 表示 MySQL 官方镜像的 8.0 版本。
+    # 为什么不写 mysql:latest：latest 会随时间变，
+    # 今天跑通的配置明天可能因镜像更新而失效。
+    # 锁定版本号（8.0）能保证环境稳定。
+    image: mysql:8.0
+
+    # 容器名字。起了名字后，可以用名字操作容器：
+    #   docker logs study_mysql     看日志
+    #   docker exec -it study_mysql bash   进容器
+    # 不起名字的话，Docker 会随机生成一个，不好记。
+    container_name: study_mysql
+
+    # 重启策略。
+    # unless-stopped 表示：除非你手动 stop 了它，
+    # 否则容器退出后自动重启（包括电脑重启后）。
+    # 为什么这么设置：避免"开了电脑忘了启动数据库"这种事。
+    restart: unless-stopped
+
+    # environment：环境变量。
+    # 这些变量会传给容器里的 MySQL，MySQL 启动时会读它们。
+    environment:
+
+      # MySQL root 用户的密码。
+      # 【必须设】不设的话 MySQL 会拒绝启动（或者用随机密码，你也不知道）。
+      # 注意：这是 root 的密码，不是业务用户 study_user 的。
+      # root 用于管理操作（建库、建表、授权），业务代码不该用 root。
+      MYSQL_ROOT_PASSWORD: root123
+
+      # 启动时自动创建的数据库。
+      # 【省事的设计】不设的话，你得手动进容器 CREATE DATABASE。
+      # 设了之后，MySQL 第一次启动时自动建好。
+      # 注意：只对"第一次启动"生效。容器已经跑过一次，
+      # 再改这个值不会建新库（因为数据目录已经初始化了）。
+      MYSQL_DATABASE: study_db
+
+      # 业务用户账号。
+      # 【为什么要建独立账号】日常操作不需要 root 权限，
+      # 用专用账号更安全（万一密码泄漏，攻击者只能操这个库）。
+      # 【重要】这个账号会在 MySQL 第一次启动时创建。
+      # 之后改这个值不会影响已有账号——必须删数据卷重建容器才生效。
+      # 这就是为什么改密码要 `docker compose down -v`。
+      MYSQL_USER: study_user
+
+      # 业务用户密码。
+      # 必须和 .env 里的 MYSQL_PASSWORD 一致。
+      MYSQL_PASSWORD: study_pass
+
+    # command：启动 MySQL 时传给它的命令行参数。
+    # 这些参数控制 MySQL 服务端的行为。
+    command:
+
+      # 服务端字符集。
+      # 【为什么必须设】不设的话，中文可能存成问号。
+      # utf8mb4 才是真正的 UTF-8。
+      # MySQL 里的 "utf8" 是残废版——最多 3 字节，存不了 emoji 和部分汉字。
+      - --character-set-server=utf8mb4
+
+      # 字符集排序规则。
+      # 影响字符串比较（比如 ORDER BY 中文时的顺序）。
+      # utf8mb4_unicode_ci 是通用规则，不区分大小写（ci = case insensitive）。
+      - --collation-server=utf8mb4_unicode_ci
+
+      # 允许从容器外连接。
+      # 【为什么必须设】Docker 容器默认有自己的网络命名空间，
+      # 不设这个的话，只有容器内部能连，你本机连不上。
+      # 0.0.0.0 表示"监听所有网卡"。
+      - --bind-address=0.0.0.0
+
+    # ports：端口映射。
+    # 格式是 "宿主机端口:容器端口"。
+    ports:
+
+      # 把宿主机的 9999 映射到容器的 3306。
+      # 意思：你访问本机的 9999，流量会转发到容器的 3306（MySQL 默认端口）。
+      # 为什么不用默认的 "3306:3306"：本机装了 MySQL，占用了 3306，会冲突。
+      # 冲突时会报 "ports are not available" 错误。
+      - "9999:3306"
+
+    # volumes：数据卷。
+    # 容器是"用完即焚"的——删了容器，容器里的数据也没了。
+    # 数据卷把数据存在容器外面（宿主机的某个目录），删容器数据还在。
+    volumes:
+
+      # 格式是 "卷名:容器内路径"。
+      # mysql_data 是下面 volumes: 段里定义的命名卷。
+      # /var/lib/mysql 是 MySQL 存数据的目录（默认位置）。
+      # 这样映射后，MySQL 写的所有数据实际存在宿主机的 Docker 数据卷里。
+      - mysql_data:/var/lib/mysql
+
+    # healthcheck：健康检查。
+    # Docker 会定期执行这里的命令，根据结果判断容器是否"健康"。
+    # 【为什么需要】MySQL 启动要十几秒（初始化数据目录），
+    # 这期间容器的状态是 "running" 但实际上还不能连。
+    # 有了健康检查，Docker 会等到真的能连了才标成 healthy。
+    healthcheck:
+
+      # 检查命令。
+      # mysqladmin ping 是 MySQL 自带的工具，能 ping 通说明服务在跑。
+      # -h localhost：连本机（容器内的 localhost）。
+      # -uroot -proot123：用 root 账号连。
+      # 为什么用 root 而不是 study_user：root 一定存在，保险。
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
+
+      # 检查间隔：每 5 秒检查一次。
+      interval: 5s
+
+      # 单次检查超时：5 秒。
+      timeout: 5s
+
+      # 连续失败几次判定为 unhealthy。
+      retries: 20
+
+      # 启动后多久开始检查。
+      # 给 30 秒缓冲期，避免启动阶段就被判定为不健康。
+      start_period: 30s
+
+  # ==========================================================
+  # 服务 2：Redis（缓存 + 临时数据）
+  # ==========================================================
+  redis:
+
+    # 用哪个镜像。
+    # redis:7-alpine 里的 alpine 是一个超小型的 Linux 发行版，
+    # 镜像只有几 MB（相比 ubuntu 的几百 MB）。
+    # 功能完全够用，只是少了些系统工具（比如 bash）。
+    image: redis:7-alpine
+
+    container_name: study_redis
+
+    restart: unless-stopped
+
+    command:
+
+      # redis-server：启动 Redis 服务端。
+      - redis-server
+
+      # 开启 AOF 持久化。
+      # AOF = Append Only File，Redis 会把每个写操作追加到一个日志文件。
+      # 【为什么开】Redis 默认是"纯内存"，重启后数据全没。
+      # 开了 AOF 后，重启能从日志恢复。
+      # 我们存了"作答草稿"，丢了学生会骂人，所以开 AOF 更稳妥。
+      - --appendonly
+
+      # yes 是 AOF 的开关值。
+      # 注意 YAML 里 yes 会被解析成布尔值 True，
+      # 所以这里加引号强制当字符串。
+      - "yes"
+
+      # 设置访问密码。
+      - --requirepass
+
+      # 密码值。必须和 .env 里的 REDIS_PASSWORD 一致。
+      - redis123
+
+    ports:
+
+      # 宿主机 9991 → 容器 6379（Redis 默认端口）。
+      - "9991:6379"
+
+    volumes:
+
+      # Redis 数据目录。
+      # Redis 把 AOF 日志写在这里。
+      - redis_data:/data
+
+    healthcheck:
+
+      # redis-cli ping 返回 PONG 说明服务在跑。
+      # -a redis123 表示用密码认证。
+      test: ["CMD", "redis-cli", "-a", "redis123", "ping"]
+
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+
+# ============================================================
+# volumes：定义命名卷
+# 命名卷由 Docker 自己管理，存在宿主机的固定位置。
+# 想看数据具体存在哪：docker volume inspect study-system_mysql_data
+# ============================================================
+volumes:
+
+  # MySQL 数据卷。
+  # 名字是 mysql_data，上面 services.mysql.volumes 里引用了它。
+  # Docker 会自动加项目名前缀，实际叫 study-system_mysql_data。
+  mysql_data:
+
+  # Redis 数据卷。
+  redis_data:

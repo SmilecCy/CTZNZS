@@ -1,0 +1,13 @@
+{
+  "metas": {
+    "1": {
+      "question_id": "2",
+      "text": "什么是违约责任",
+      "course": "tort"
+    }
+  },
+  "id_map": {
+    "2": 1
+  },
+  "next_id": 2
+}

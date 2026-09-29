@@ -1,0 +1,28 @@
+/* ============================================================
+     * 文件：index.css
+     * 用途：全局样式
+     * ============================================================ */
+
+    /* 重置边距 */
+    html,
+    body,
+    #root {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    /* 字体设置 */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+        'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial,
+        sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 去掉链接的默认下划线 */
+    a {
+      text-decoration: none;
+    }
+    
