@@ -38,7 +38,7 @@ load_dotenv(ROOT / ".env")
 import httpx  # noqa: E402
 
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:5174"
 
 
 def _ok(msg: str) -> None:

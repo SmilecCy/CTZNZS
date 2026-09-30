@@ -128,7 +128,7 @@ def main() -> int:
         print("=" * 62)
         print(f"  模型已就位：{LOCAL_MODEL_DIR}")
         print("\n  现在可以启动应用了，它会自动用本地这一份：")
-        print("      streamlit run app.py")
+        print("      python app.py dev")
         print("\n  注意：应用启动时才读取模型位置，所以要**重启应用**才会生效。")
         return 0
 

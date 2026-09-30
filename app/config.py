@@ -72,7 +72,6 @@ class Course(TypedDict):
     name: str           # 展示名
     knowledge_points: list[str]
     question_focus: str  # 出题侧重（供提示词模板选择）
-    memory_strategy: str  # 记忆策略（保留字段，当前不用）
 
 
 # 【重要】这个字典的用途已降级：
@@ -96,7 +95,6 @@ COURSES: Final[dict[str, Course]] = {
             "诉讼时效",
         ],
         "question_focus": "构成要件辨析、归责原则判断、案例适用",
-        "memory_strategy": "知识层级（归责原则→构成要件→抗辩事由）",
     },
     "xigai": {
         "key": "xigai",
@@ -114,27 +112,8 @@ COURSES: Final[dict[str, Course]] = {
             "党的自我革命",
         ],
         "question_focus": "概念阐释、关系辨析、时政结合",
-        "memory_strategy": "层级缩略（核心论点→支撑逻辑→关键词）",
     },
 }
-
-COURSE_KEYS: Final[list[str]] = list(COURSES.keys())
-
-
-def get_seed_course(key: str) -> Course:
-    """按 key 取种子课程定义。
-
-    【何时用】
-        只用于首次建库与提示词路由。
-        业务代码请改用 course 服务从数据库取。
-
-    Raises:
-        KeyError: 课程不存在。
-    """
-    if key not in COURSES:
-        raise KeyError(f"未知种子课程 key={key!r}，可选：{COURSE_KEYS}")
-    return COURSES[key]
-
 
 # ---------------------------------------------------------------
 # 三、切分参数（M0 结构化切分）
@@ -266,17 +245,9 @@ BOCHA_BASE_URL: Final[str] = "https://api.bochaai.com/v1/web-search"
 
 
 # ---------------------------------------------------------------
-# 十一、网络搜索兜底开关
-# ---------------------------------------------------------------
-# 是否启用搜索兜底。默认关，通过环境变量 WEB_SEARCH_ENABLED=1 开启。
-WEB_SEARCH_ENABLED: Final[bool] = os.getenv("WEB_SEARCH_ENABLED", "0") in ("1", "true", "True")
-
-
-# ---------------------------------------------------------------
-# 十二、出题相关参数
+# 十一、出题相关参数
 # ---------------------------------------------------------------
 DEDUP_MAX_RETRY: Final[int] = 2
-DEFAULT_WARMUP_COUNT: Final[dict[str, int]] = {"简答": 3, "选择": 5}
 
 # 简答题判为"掌握"的评分要点命中率阈值。
 # 单点定义：练习页的自动收录、错题集的复习判定都用它。

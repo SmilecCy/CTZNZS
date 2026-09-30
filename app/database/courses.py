@@ -3,7 +3,7 @@
 
 【为什么课程要单独一个 service】
 
-    课程是整个系统的"根"。题库、错题、试卷、预热任务全都挂在课程上。
+    课程是整个系统的"根"。题库、错题、试卷全都挂在课程上。
     所以课程的操作比其他实体更敏感：
       - 删除必须是软删除（直接删会破坏一堆外键）
       - 合并要迁移数据 + 去重 + 留痕
@@ -288,7 +288,7 @@ def soft_delete(course_id: int) -> bool:
     """软删除课程（置 is_active = 0）。
 
     【为什么是软删除而不是硬删除】
-        课程关联着题库、错题、试卷、预热任务。
+        课程关联着题库、错题、试卷。
         硬删除会触发外键 CASCADE，把这些数据一起删掉。
         而"删一门课"的真实意图通常是"我不想在列表里看到它了"，
         不是"把这门课的所有历史数据都清掉"。
@@ -362,7 +362,7 @@ def merge(from_course_id: int, to_course_id: int, merged_by: str = "") -> dict[s
         1. 把 from 课程的**资料**改挂到 to 课程
         2. 把 from 课程的**知识点**改挂到 to 课程（同名的去重）
         3. 把 from 课程的**题目**改挂到 to 课程（去重：题干相似度 ≥ 0.9）
-        4. 把 from 课程的**错题、试卷、预热任务**改挂到 to 课程
+        4. 把 from 课程的**错题、试卷**改挂到 to 课程
         5. 把 from 课程标记为 merged_into = to_course_id，并停用
         6. 写 course_merge_log 留痕
 
@@ -407,8 +407,7 @@ def merge(from_course_id: int, to_course_id: int, merged_by: str = "") -> dict[s
         "deduped_questions": 0,
         "moved_wrong_questions": 0,
         "moved_papers": 0,
-        "moved_warmup_jobs": 0,
-    }
+        }
 
     # ---------- 1. 迁移资料 ----------
     # 【注意】material_course_map 的 material_id 有唯一约束，
@@ -515,13 +514,7 @@ def merge(from_course_id: int, to_course_id: int, merged_by: str = "") -> dict[s
         (to_course_id, from_course_id),
     )
 
-    # ---------- 6. 迁移预热任务 ----------
-    report["moved_warmup_jobs"] = db_mysql.execute(
-        "UPDATE warmup_jobs SET course_id = %s WHERE course_id = %s",
-        (to_course_id, from_course_id),
-    )
-
-    # ---------- 7. 标记原课程为已合并 ----------
+    # ---------- 6. 标记原课程为已合并 ----------
     db_mysql.execute(
         "UPDATE courses SET is_active = 0, merged_into = %s WHERE id = %s",
         (to_course_id, from_course_id),
@@ -647,7 +640,6 @@ def get_delete_preview(course_id: int) -> dict:
           - 题库里的题目
           - 学生的错题
           - 试卷
-          - 预热任务
         这些都是不可恢复的。用户点删除前应该明确知道。
 
     Returns:
@@ -660,7 +652,6 @@ def get_delete_preview(course_id: int) -> dict:
           "question_count": int,
           "wrong_question_count": int,
           "paper_count": int,
-          "warmup_job_count": int,
           "material_count": int,
           "can_delete": bool,
         }
@@ -678,7 +669,6 @@ def get_delete_preview(course_id: int) -> dict:
             "question_count": 0,
             "wrong_question_count": 0,
             "paper_count": 0,
-            "warmup_job_count": 0,
             "material_count": 0,
             "can_delete": False,
         }
@@ -704,9 +694,6 @@ def get_delete_preview(course_id: int) -> dict:
         "paper_count": _count(
             "SELECT COUNT(*) AS n FROM papers WHERE course_id = %s"
         ),
-        "warmup_job_count": _count(
-            "SELECT COUNT(*) AS n FROM warmup_jobs WHERE course_id = %s"
-        ),
         "material_count": _count(
             "SELECT COUNT(*) AS n FROM materials WHERE course_id = %s"
         ),
@@ -724,7 +711,6 @@ def hard_delete(course_id: int) -> dict:
           - 所有题目（question_bank）
           - 所有错题（wrong_questions）
           - 所有试卷（papers）
-          - 所有预热任务（warmup_jobs）
         因为所有这些表都有 `ON DELETE CASCADE` 外键约束，
         删课程会自动级联删除它们。
 
@@ -783,7 +769,6 @@ def hard_delete(course_id: int) -> dict:
             "question_count": preview["question_count"],
             "wrong_question_count": preview["wrong_question_count"],
             "paper_count": preview["paper_count"],
-            "warmup_job_count": preview["warmup_job_count"],
         },
         "error": None,
     }

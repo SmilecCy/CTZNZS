@@ -432,7 +432,6 @@ export default function CourseManage() {
                     </b>
                   </li>
                   <li>试卷：{hardDeletePreview.paper_count} 张</li>
-                  <li>预热任务：{hardDeletePreview.warmup_job_count} 个</li>
                 </ul>
 
                 <p style={{ marginTop: 16 }}>

@@ -54,10 +54,10 @@ load_dotenv(ROOT / ".env")
 
 from app.database import (  # noqa: E402
     cache,
-    course,
-    db_mysql,
-    db_redis,
-    knowledge_point,
+    connection as db_mysql,
+    courses as course,
+    knowledge_points as knowledge_point,
+    redis as db_redis,
 )
 
 

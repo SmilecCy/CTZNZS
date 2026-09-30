@@ -5,13 +5,13 @@
 
     python scripts/run_api.py
     或
-    uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    uvicorn api.main:app --host 0.0.0.0 --port 5174 --reload
 
 【访问】
 
-    API 服务：http://localhost:8000
-    接口文档：http://localhost:8000/docs    （Swagger UI）
-    健康检查：http://localhost:8000/health
+    API 服务：http://localhost:5174
+    接口文档：http://localhost:5174/docs    （Swagger UI）
+    健康检查：http://localhost:5174/health
 """
 
 from __future__ import annotations
@@ -170,4 +170,4 @@ async def root() -> dict:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=5174)

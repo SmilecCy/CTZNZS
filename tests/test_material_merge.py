@@ -18,12 +18,12 @@ import json
 import pytest
 
 from app.database import (
-    course,
-    knowledge_point,
-    material_classifier,
-    material_merge,
-    material_store,
+    courses as course,
+    knowledge_points as knowledge_point,
+    materials as material_store,
 )
+from app.ai import material_classifier
+from app.pipeline import material_merge
 from app.ai.llm_client import LLMResponse, LLMUsage
 
 

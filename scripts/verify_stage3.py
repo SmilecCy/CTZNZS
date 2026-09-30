@@ -47,14 +47,13 @@ from dotenv import load_dotenv  # noqa: E402
 load_dotenv(ROOT / ".env")
 
 from app.database import (  # noqa: E402
-    course,
-    db_mysql,
-    db_redis,
-    generator,
-    knowledge_point,
-    question_bank_mysql,
-    search_tool,
+    connection as db_mysql,
+    courses as course,
+    knowledge_points as knowledge_point,
+    questions as question_bank_mysql,
+    redis as db_redis,
 )
+from app.ai import generator, search_tool  # noqa: E402
 from app.ai.llm_client import LLMResponse, LLMUsage  # noqa: E402
 
 

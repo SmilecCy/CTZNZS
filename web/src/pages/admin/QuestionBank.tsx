@@ -321,7 +321,7 @@ export default function QuestionBank() {
             type="info"
             showIcon
             message="没有符合条件的题目"
-            description="调整筛选条件，或到「预热向导」生成一批题目。"
+            description="调整筛选条件，或到「出题设置」生成一批题目。"
           />
         ) : (
           <Table

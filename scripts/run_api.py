@@ -44,9 +44,9 @@ def main() -> int:
     print("=" * 60)
     print("FastAPI 服务")
     print("=" * 60)
-    print("地址：http://localhost:8000")
-    print("文档：http://localhost:8000/docs")
-    print("健康：http://localhost:8000/health")
+    print("地址：http://localhost:5174")
+    print("文档：http://localhost:5174/docs")
+    print("健康：http://localhost:5174/health")
     print("=" * 60)
     print()
     print("按 Ctrl+C 停止服务。")
@@ -55,7 +55,7 @@ def main() -> int:
     uvicorn.run(
         "api.main:app",        # 应用位置
         host="0.0.0.0",        # 0.0.0.0 表示监听所有网卡
-        port=8000,             # 端口
+        port=5174,             # 端口
         reload=True,           # 热重载（开发用）
         reload_dirs=[str(ROOT / "api"), str(ROOT / "app")],   # 监视哪些目录
         log_level="info",

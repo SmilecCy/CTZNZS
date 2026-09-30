@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-"""临时诊断脚本：看课程、知识点、资料、题库、LLM、预热任务。"""
+"""临时诊断脚本：看课程、知识点、资料、题库、LLM。"""
 
 from __future__ import annotations
 
@@ -13,14 +13,8 @@ if str(ROOT) not in sys.path:
 from dotenv import load_dotenv
 load_dotenv(ROOT / ".env")
 
-from app.database import (
-    course,
-    knowledge_point,
-    llm_client,
-    material_store,
-    question_bank_mysql,
-    warmup_mysql,
-)
+from app.database import courses, knowledge_points, materials, questions
+from app.ai import llm_client
 
 
 def main() -> None:
@@ -38,10 +32,10 @@ def main() -> None:
     # 课程 + 知识点
     print()
     print("【课程与知识点】")
-    courses = course.list_all()
-    print(f"  课程数: {len(courses)}")
-    for c in courses:
-        kps = knowledge_point.list_by_course(c["id"])
+    all_courses = courses.list_all()
+    print(f"  课程数: {len(all_courses)}")
+    for c in all_courses:
+        kps = knowledge_points.list_by_course(c["id"])
         print(f"    [{c['id']}] {c['name']}: {len(kps)} 个知识点")
         for kp in kps[:10]:
             print(f"        - {kp['name']}")
@@ -51,9 +45,9 @@ def main() -> None:
     # 资料
     print()
     print("【资料】")
-    materials = material_store.list_all(limit=20)
-    print(f"  资料数: {len(materials)}")
-    for m in materials:
+    mats = materials.list_all(limit=20)
+    print(f"  资料数: {len(mats)}")
+    for m in mats:
         print(f"    id={m['id']} {m['source_file']}")
         print(f"        状态={m['detection_status']} course_id={m.get('course_id')}")
         print(f"        块数={m.get('chunk_count')}")
@@ -61,21 +55,16 @@ def main() -> None:
     # 题库
     print()
     print("【题库】")
-    for c in courses:
-        n = question_bank_mysql.count_questions(c["id"])
+    for c in all_courses:
+        n = questions.count_questions(c["id"])
         print(f"    {c['name']}: {n} 道题")
 
-    # 预热任务
+    # 预热任务（已移除）
     print()
     print("【预热任务】")
-    for c in courses:
-        jobs = warmup_mysql.list_jobs(c["id"], limit=5)
-        if jobs:
-            print(f"    {c['name']}:")
-            for j in jobs:
-                print(f"      id={j['id']} status={j['status']} planned={j['planned']}")
-        else:
-            print(f"    {c['name']}: 无")
+    print("  预热功能已在数据库迁移 018 中移除。")
+    print("  预热任务表（warmup_jobs / warmup_items）已删除。")
+    print("  题库生成逻辑已迁移到 parse_tasks 模块。")
 
     print()
 

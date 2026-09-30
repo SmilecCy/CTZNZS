@@ -55,14 +55,14 @@ from dotenv import load_dotenv  # noqa: E402
 load_dotenv(ROOT / ".env")
 
 from app.database import (  # noqa: E402
-    course,
-    db_mysql,
-    db_redis,
-    knowledge_point,
-    material_classifier,
-    material_merge,
-    material_store,
+    connection as db_mysql,
+    courses as course,
+    knowledge_points as knowledge_point,
+    materials as material_store,
+    redis as db_redis,
 )
+from app.ai import material_classifier  # noqa: E402
+from app.pipeline import material_merge  # noqa: E402
 from app.ai.llm_client import LLMResponse, LLMUsage  # noqa: E402
 
 

@@ -7,7 +7,7 @@ import { defineConfig } from 'vite'
         port: 5173,
         proxy: {
           '/api': {
-            target: 'http://localhost:8000',
+            target: 'http://localhost:5174',
             changeOrigin: true,
           },
         },
@@ -17,4 +17,3 @@ import { defineConfig } from 'vite'
         sourcemap: false,
       },
     })
-    

@@ -158,7 +158,7 @@ export default function SelfTest() {
           type="success"
           showIcon
           message="所有已交付功能都通过验证"
-          description="M0 资料解析 / M2 出题 / M2.5 预热 / M3 错题 / 后台管理 全部走通。"
+          description="M0 资料解析 / M2 出题 / M3 错题 / 后台管理 全部走通。"
         />
       </Card>
     </div>

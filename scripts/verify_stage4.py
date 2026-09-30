@@ -43,7 +43,7 @@ import httpx  # noqa: E402
 # ==============================================================
 # 配置
 # ==============================================================
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:5174"
 
 
 # ==============================================================
@@ -355,7 +355,7 @@ def main() -> int:
     _section("结论")
     print("  阶段四全部通过。")
     print()
-    print("  API 文档：http://localhost:8000/docs")
+    print("  API 文档：http://localhost:5174/docs")
     print("  下一步：进入阶段五（React 用户端）")
     return 0
 
